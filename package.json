@@ -1,0 +1,28 @@
+{
+  "name": "testfla",
+  "version": "1.0.0",
+  "description": "",
+  "main": "gulpfile.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "start": "node ./main.js",
+    "build": "node ./node_modules/pkg/lib-es5/bin.js -c package.json main.js --output main.exe",
+    "preview": "node ./bgService.js"
+  },
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "browser-sync": "^2.26.3",
+    "gulp": "^4.0.0",
+    "jsdom": "^13.1.0"
+  },
+  "devDependencies": {
+    "pkg": "^4.3.5"
+  },
+  "pkg": {
+    "scripts": [
+      "bgService.js",
+      "gulpfile.js"
+    ]
+  }
+}
