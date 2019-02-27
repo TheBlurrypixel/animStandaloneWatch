@@ -1,7 +1,7 @@
 var spawn = require('child_process').spawn;
 const path = require('path');
 
-var pathToFile = path.join(__dirname, 'bgService.js');
+var pathToFile = path.join(__dirname, 'gulpfile.js');
 console.log(pathToFile);
 
 spawn('node', [pathToFile], {
