@@ -24,6 +24,8 @@ var doFixPreloader = true;
 function loadHTML(err, html_string, inStretchingRatio, inAspectLimit, inline, inlineImages, enableStageGL, fixPreloader) {
   if(!html_string) return false;
 
+  var found = html_string.match(/<html>/g);
+
   var stretchRatioFloat = parseFloat(inStretchingRatio);
   var aspectLimitFloat = parseFloat(inAspectLimit);
   var excludeAspectCode = (aspectLimitFloat == 0);
@@ -166,11 +168,24 @@ function loadHTML(err, html_string, inStretchingRatio, inAspectLimit, inline, in
     for(var i = 0; i < scriptInputs.length; i++) {
       if(scriptInputs[i].hasAttribute('src')) {
         if(scriptInputs[i].src.startsWith('http')) {
-          var content = require('child_process').execFileSync('curl', ['--silent', '-L', scriptInputs[i].src], {encoding: 'utf8'});
-          processScriptTag(scriptInputs[i], content);
+          try {
+            var content = require('child_process').execFileSync('curl', ['--silent', '-L', scriptInputs[i].src], {encoding: 'utf8'});
+            if(content)
+              processScriptTag(scriptInputs[i], content);
+          }
+          catch(err) {
+            console.error(err);            
+          }
         }
         else {
-          processScriptTag(scriptInputs[i], fs.readFileSync(path.join(directory, scriptInputs[i].src), 'utf8'));
+          try {
+            var tempString = fs.readFileSync(path.join(directory, scriptInputs[i].src), 'utf8');
+            if(tempString)
+              processScriptTag(scriptInputs[i], tempString);
+          }
+          catch(err) {
+            console.error(err);
+          }
         }
       }
     }
@@ -340,7 +355,15 @@ for(i=0; i<ssMetadata.length; i++) {
     }
   }
 
-  return "<!DOCTYPE html>\n" + dom.window.document.getElementsByTagName('html')[0].outerHTML;
+  var outputHtml;
+  if(found) {
+    outputHtml = "<!DOCTYPE html>\n" + dom.window.document.getElementsByTagName('html')[0].outerHTML;
+  }
+  else {
+    outputHtml = dom.window.document.getElementsByTagName('head')[0].innerHTML + dom.window.document.getElementsByTagName('body')[0].innerHTML;
+  }
+
+  return outputHtml;
 }
 
 var outputFilePath = baseDir + '/' + inputFile;
