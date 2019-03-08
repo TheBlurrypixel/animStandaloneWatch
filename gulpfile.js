@@ -30,6 +30,9 @@ function loadHTML(err, html_string, inStretchingRatio, inAspectLimit, inline, in
   var aspectLimitFloat = parseFloat(inAspectLimit);
   var excludeAspectCode = (aspectLimitFloat == 0);
 
+  // var progressBar = new ProgressBar( {text: 'Processing file...', detail: 'Wait...'} );
+  // progressBar.on('completed', () => progressBar.detail = 'Task completed. Exiting...').on('aborted', () => app.quit());
+
   var fileContent = html_string.replace(/^\uFEFF/, '');
 
   const dom = new JSDOM(fileContent);
@@ -52,7 +55,10 @@ function loadHTML(err, html_string, inStretchingRatio, inAspectLimit, inline, in
       imageAsBase64 = content;
     }
     else {
-      imageAsBase64 = fs.readFileSync(path.join(directory, inSrc), 'base64');
+      var tempPath = path.join(directory, inSrc);
+      if(fs.existsSync(tempPath)) {
+        imageAsBase64 = fs.readFileSync(tempPath, 'base64');
+      }
     }
 
     // determine if png or jpg
@@ -73,7 +79,6 @@ function loadHTML(err, html_string, inStretchingRatio, inAspectLimit, inline, in
 
   function processImgTag(element) {
     var imageAsData = convertImgToDataURI(element.src);
-    // console.log(imageAsData);
     element.src = imageAsData;
   }
 
@@ -168,23 +173,16 @@ function loadHTML(err, html_string, inStretchingRatio, inAspectLimit, inline, in
     for(var i = 0; i < scriptInputs.length; i++) {
       if(scriptInputs[i].hasAttribute('src')) {
         if(scriptInputs[i].src.startsWith('http')) {
-          try {
-            var content = require('child_process').execFileSync('curl', ['--silent', '-L', scriptInputs[i].src], {encoding: 'utf8'});
-            if(content)
-              processScriptTag(scriptInputs[i], content);
-          }
-          catch(err) {
-            console.error(err);            
-          }
+          var content = require('child_process').execFileSync('curl', ['--silent', '-L', scriptInputs[i].src], {encoding: 'utf8'});
+          if(content)
+            processScriptTag(scriptInputs[i], content);
         }
         else {
-          try {
-            var tempString = fs.readFileSync(path.join(directory, scriptInputs[i].src), 'utf8');
+          var tempPath = path.join(directory, scriptInputs[i].src);
+          if(fs.existsSync(tempPath)) {
+            var tempString = fs.readFileSync(tempPath, 'utf8');
             if(tempString)
               processScriptTag(scriptInputs[i], tempString);
-          }
-          catch(err) {
-            console.error(err);
           }
         }
       }
