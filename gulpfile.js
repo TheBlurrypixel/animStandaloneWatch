@@ -373,8 +373,8 @@ function loadHTML(err, html_string, inStretchingRatio, inAspectLimit, inline, in
   return outputHtml;
 }
 
-var outputFilePath = baseDir + '/' + inputFile;
-var inputFilePath = './' + inputFile;
+var outputFilePath = baseDir + inputFile;
+var inputFilePath = directory + inputFile;
 
 if (!fs.existsSync(baseDir)){
     fs.mkdirSync(baseDir);
