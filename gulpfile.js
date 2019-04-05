@@ -10,9 +10,9 @@ const { JSDOM } = jsdom;
 var browserSync = require('browser-sync').create();
 
 //var isWin = process.platform === "win32";
-var directory = './';
+var directory = '.';
 
-var baseDir = directory + 'build'
+var baseDir = directory + '/' + 'build'
 var inputFile = 'index.html';
 var stretchingRatio = 1;
 var aspectLimit = 2;
@@ -374,7 +374,7 @@ function loadHTML(err, html_string, inStretchingRatio, inAspectLimit, inline, in
 }
 
 var outputFilePath = baseDir + '/' + inputFile;
-var inputFilePath = directory + inputFile;
+var inputFilePath = directory + '/' + inputFile;
 
 if (!fs.existsSync(baseDir)){
     fs.mkdirSync(baseDir);
