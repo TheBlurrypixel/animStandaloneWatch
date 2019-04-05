@@ -12,7 +12,7 @@ var browserSync = require('browser-sync').create();
 //var isWin = process.platform === "win32";
 var directory = './';
 
-var baseDir = './build'
+var baseDir = directory + 'build'
 var inputFile = 'index.html';
 var stretchingRatio = 1;
 var aspectLimit = 2;
