@@ -10,19 +10,20 @@ const { JSDOM } = jsdom;
 var browserSync = require('browser-sync').create();
 
 //var isWin = process.platform === "win32";
-var directory = '.';
+var directory = '.'; // directory for input
 
-var baseDir = directory + '/' + 'build'
+var baseDir = directory + '/' + "builds"; // director for output
 var inputFile = 'index.html';
+
 var stretchingRatio = 1;
 var aspectLimit = 2;
 var doInlineScripts = true;
 var doInlineURLs = true;
 var doMakeDataURI = true;
 var doInlineImages = true;
-var doEnableStagleGL = true;
+var doEnableStagleGL = false;
 var doFixPreloader = true;
-var doConvRes = true; // Convert for CreateJS v1.0
+var doConvRes = false; // Convert for CreateJS v1.0
 
 function loadHTML(err, html_string, inStretchingRatio, inAspectLimit, inline, inlineURLs, makeDataURI, inlineImages, enableStageGL, fixPreloader, convRes) {
 	if(!html_string) return false;
