@@ -17,12 +17,14 @@ var inputFile = 'index.html';
 var stretchingRatio = 1;
 var aspectLimit = 2;
 var doInlineScripts = true;
+var doInlineURLs = true;
+var doMakeDataURI = true;
 var doInlineImages = true;
 var doEnableStagleGL = true;
 var doFixPreloader = true;
 var doConvRes = true; // Convert for CreateJS v1.0
 
-function loadHTML(err, html_string, inStretchingRatio, inAspectLimit, inline, inlineImages, enableStageGL, fixPreloader, convRes) {
+function loadHTML(err, html_string, inStretchingRatio, inAspectLimit, inline, inlineURLs, makeDataURI, inlineImages, enableStageGL, fixPreloader, convRes) {
 	if(!html_string) return false;
 
 	var found = html_string.match(/<html>/g);
@@ -39,7 +41,9 @@ function loadHTML(err, html_string, inStretchingRatio, inAspectLimit, inline, in
 
 	function processScriptTag(element, data) {
 		var par = element.parentNode;
-		var elmnt = dom.window.document.createElement("script");
+//			var elmnt = dom.window.document.createElement("script");
+		var elmnt = element.cloneNode();
+		elmnt.removeAttribute("src");
 		var textnode = dom.window.document.createTextNode('\n' + data + '\n');
 		elmnt.appendChild(textnode);
 		par.replaceChild(elmnt, element);
@@ -80,19 +84,19 @@ function loadHTML(err, html_string, inStretchingRatio, inAspectLimit, inline, in
 		element.src = imageAsData;
 	}
 
-	function processScriptSrc(elememt) {
-		// save a handle to the "this" pointer
-		var myElement = elememt;
-
-		// this is an anonymous function
-		return function (err, data) {
-			var par = myElement.parentNode;
-			var elmnt = dom.window.document.createElement("script");
-			var textnode = dom.window.document.createTextNode('\n' + data + '\n');
-			elmnt.appendChild(textnode);
-			par.replaceChild(elmnt, myElement);
-		}
-	}
+	// function processScriptSrc(elememt) {
+	// 	// save a handle to the "this" pointer
+	// 	var myElement = elememt;
+	//
+	// 	// this is an anonymous function
+	// 	return function (err, data) {
+	// 		var par = myElement.parentNode;
+	// 		var elmnt = dom.window.document.createElement("script");
+	// 		var textnode = dom.window.document.createTextNode('\n' + data + '\n');
+	// 		elmnt.appendChild(textnode);
+	// 		par.replaceChild(elmnt, myElement);
+	// 	}
+	// }
 
 	function findEndingBrace(inString, startingIndex) {
 		var leftCurlyBraceIndex = inString.indexOf('{', startingIndex);// index of the '{' to which you need to find the matching '}'
@@ -102,7 +106,7 @@ function loadHTML(err, html_string, inStretchingRatio, inAspectLimit, inline, in
 		for (var i = leftCurlyBraceIndex + 1, len = inString.length; i < len; i++) {
 			if(inString.charAt(i) == '}') {
 				if (rightCurlyBracesTobeIgnored == 0) {
-					rightCurlyBraceIndex = i;
+						rightCurlyBraceIndex = i;
 					break;
 				}
 				else
@@ -129,7 +133,8 @@ function loadHTML(err, html_string, inStretchingRatio, inAspectLimit, inline, in
 				var newText = scriptInputs[tempSIndex].text.replace(/Ticker.setFPS\((.+)\)/g, "Ticker.framerate = $1");
 
 				var par = scriptInputs[tempSIndex].parentNode;
-				var elmnt = dom.window.document.createElement("script");
+//					var elmnt = dom.window.document.createElement("script");
+				var elmnt = scriptInputs[tempSIndex].cloneNode();
 				var textnode = dom.window.document.createTextNode(newText + '\n');
 
 				elmnt.appendChild(textnode);
@@ -161,7 +166,8 @@ function loadHTML(err, html_string, inStretchingRatio, inAspectLimit, inline, in
 			var newText = scriptInputs[stageGLScriptIndex].text.replace(/\bnew createjs.Stage\b/, 'new createjs.StageGL').replace(/\bcreatejs.Stage.call\(this, canvas\)/, 'createjs.StageGL.call(this, canvas, { antialias: true })');
 
 			var par = scriptInputs[stageGLScriptIndex].parentNode;
-			var elmnt = dom.window.document.createElement("script");
+			// var elmnt = dom.window.document.createElement("script");
+			var elmnt = scriptInputs[stageGLScriptIndex].cloneNode();
 
 			var textnode = dom.window.document.createTextNode(newText + '\n');
 			elmnt.appendChild(textnode);
@@ -175,7 +181,8 @@ function loadHTML(err, html_string, inStretchingRatio, inAspectLimit, inline, in
 			var newText = scriptInputs[responsiveScriptIndex].text.substring(0, responsiveFuncIndex+stageUpdateIndex) + "stage.updateViewport(canvas.width, canvas.height);\n\t\t\t" + scriptInputs[responsiveScriptIndex].text.substring(responsiveFuncIndex+stageUpdateIndex, scriptInputs[responsiveScriptIndex].text.length);
 
 			var par = scriptInputs[responsiveScriptIndex].parentNode;
-			var elmnt = dom.window.document.createElement("script");
+			// var elmnt = dom.window.document.createElement("script");
+			var elmnt = scriptInputs[responsiveScriptIndex].cloneNode();
 
 			var textnode = dom.window.document.createTextNode(newText + '\n');
 			elmnt.appendChild(textnode);
@@ -187,7 +194,7 @@ function loadHTML(err, html_string, inStretchingRatio, inAspectLimit, inline, in
 	if(inline) {
 		for(var i = 0; i < scriptInputs.length; i++) {
 			if(scriptInputs[i].hasAttribute('src')) {
-				if(scriptInputs[i].src.startsWith('http')) {
+				if(scriptInputs[i].src.startsWith('http') && inlineURLs) {
 					var content = require('child_process').execFileSync('curl', ['--silent', '-L', scriptInputs[i].src], {encoding: 'utf8'});
 					if(content)
 						processScriptTag(scriptInputs[i], content);
@@ -268,7 +275,8 @@ function loadHTML(err, html_string, inStretchingRatio, inAspectLimit, inline, in
 						);
 
 						var par = scriptElem.parentNode;
-						var elmnt = dom.window.document.createElement("script");
+						// var elmnt = dom.window.document.createElement("script");
+						var elmnt = scriptElem.cloneNode();
 
 						var textnode = dom.window.document.createTextNode(newScriptText);
 						elmnt.appendChild(textnode);
@@ -279,18 +287,20 @@ function loadHTML(err, html_string, inStretchingRatio, inAspectLimit, inline, in
 		}
 	}
 
-	while(scriptIndex < scriptInputs.length) {
-		var libPropIndex = scriptInputs[scriptIndex].text.search(/\blib.properties =/);
-		if(libPropIndex > -1) {
-			processManifest(scriptInputs[scriptIndex], libPropIndex);
-		}
-		else {
-			libPropIndex = scriptInputs[scriptIndex].text.search(/\blib.properties=/)
+	if(makeDataURI) {
+		while(scriptIndex < scriptInputs.length) {
+			var libPropIndex = scriptInputs[scriptIndex].text.search(/\blib.properties =/);
 			if(libPropIndex > -1) {
 				processManifest(scriptInputs[scriptIndex], libPropIndex);
 			}
+			else {
+				libPropIndex = scriptInputs[scriptIndex].text.search(/\blib.properties=/)
+				if(libPropIndex > -1) {
+					processManifest(scriptInputs[scriptIndex], libPropIndex);
+				}
+			}
+			scriptIndex++;
 		}
-		scriptIndex++;
 	}
 
 	scriptIndex = 0;
@@ -317,7 +327,7 @@ function loadHTML(err, html_string, inStretchingRatio, inAspectLimit, inline, in
 		exportRoot.y = -(h*sRatio-ih) / (2 * sRatio);
 		stage.scaleX = sRatio*stretchingRatio;
 		stage.scaleY = sRatio*stretchingRatio;
-		// end modified responsive code
+			// end modified responsive code
 `
 
 	if(initScriptsElemIndex > -1) {
@@ -333,7 +343,8 @@ function loadHTML(err, html_string, inStretchingRatio, inAspectLimit, inline, in
 						var newText = scriptInputs[initScriptsElemIndex].text.substring(0, insertResponsiveIndex) + insertResponsiveCode + scriptInputs[initScriptsElemIndex].text.substring(endResponsiveIndex);
 
 						var par = scriptInputs[initScriptsElemIndex].parentNode;
-						var elmnt = dom.window.document.createElement("script");
+						// var elmnt = dom.window.document.createElement("script");
+						var elmnt = scriptInputs[initScriptsElemIndex].cloneNode();
 
 						var textnode = dom.window.document.createTextNode(newText);
 						elmnt.appendChild(textnode);
@@ -396,7 +407,7 @@ var browserSyncOpts = {
 gulp.task('processFile', (res) => {
   gulp.src(res)
   .pipe(through.obj(function (chunk, enc, cb) {
-    chunk.contents = new Buffer(loadHTML(null, chunk.contents.toString(enc), stretchingRatio, aspectLimit, doInlineScripts, doInlineImages, doEnableStagleGL, doFixPreloader));
+		chunk.contents = new Buffer(loadHTML(null, chunk.contents.toString(enc), stretchingRatio, aspectLimit, doInlineScripts, doInlineURLs, doMakeDataURI, doInlineImages, doEnableStagleGL, doFixPreloader, doConvRes));
     cb(null, chunk);
   }))
   .pipe(gulp.dest(baseDir));
